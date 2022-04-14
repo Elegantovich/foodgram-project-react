@@ -1,23 +1,34 @@
-from cgitb import html
-from django.shortcuts import render
-from .models import Recipe
-from django.core.paginator import Paginator
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from recipe.models import User
+from ..api.permissions import (AdminOrReadonly, AuthorOrModeratorOrAdminOrReadonly,
+                          SelfOrAdmin)
+from ..api.serializers import (AuthSerializer, UserSerializer,
+                               UserRoleSerializer)
 
 
-def index(request):
-    recipes = Recipe.objects.order_by('-pub_date')
-    paginator = Paginator(recipes, 6)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    context = {
-        'page_obj': page_obj,
-    }
-    return render(request, context)
+class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = (SelfOrAdmin,)
+    serializer_class = UserSerializer
+    pagination_class = LimitOffsetPagination
+    queryset = User.objects.all()
+    lookup_field = 'username'
 
-
-def recipe(request):
-    pass
-
-
-def user(request):
-    pass
+    @action(detail=False, methods=['get', 'patch'], url_path='me',
+            permission_classes=(IsAuthenticated,),
+            serializer_class=UserRoleSerializer)
+    def get_patch_me_url(self, request):
+        if request.method != 'GET':
+            serializer = self.get_serializer(
+                request.user,
+                data=request.data,
+                partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)

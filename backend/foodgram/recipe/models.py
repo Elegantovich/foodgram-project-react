@@ -4,10 +4,10 @@ from django.db import models
 
 class User(AbstractUser):
 
-    login = models.CharField(
+    username = models.CharField(
         unique=True,
         max_length=30,
-        verbose_name='Surname of user'
+        verbose_name='Login of user'
         )
     email = models.EmailField(
         max_length=254,
@@ -22,12 +22,10 @@ class User(AbstractUser):
         max_length=100,
         verbose_name='Surname of user'
         )
-    # password = models.CharField(
-    #   max_length=100,
-    #   verbose_name='Surname of user'
-    #   )
-
-    # FIXME: models.TextChoice доступно с 3.0, по тестам нужно строго < 3.0
+    password = models.CharField(
+        verbose_name='Password of account',
+        max_length=100
+        )
 
     User = 'user'
     Moder = 'moderator'
@@ -46,10 +44,6 @@ class User(AbstractUser):
         verbose_name='Статус',
         blank=True,
         null=True
-    )
-    confirmation_code = models.CharField(
-        max_length=3,
-        verbose_name='Уникальный код'
     )
 
     def __str__(self):
@@ -102,7 +96,9 @@ class Recipe(models.Model):
         max_length=50,
         verbose_name='Name of Recipe'
         )
-    # image = models.TextField(blank=True) Настроить в конце картинки
+    image = models.ImageField(
+        verbose_name='Image of recipe'
+        )
     description = models.TextField(
         verbose_name='Description'
         )

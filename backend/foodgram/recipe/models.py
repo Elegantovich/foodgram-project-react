@@ -83,6 +83,7 @@ class Ingredient(models.Model):
         verbose_name='Quantity'
         )
     units_measurement = models.CharField(
+        max_length=50,
         verbose_name='Units of measurement'
         )
 
@@ -107,7 +108,6 @@ class Recipe(models.Model):
         )
     Ingredients = models.ManyToManyField(
         Ingredient,
-        on_delete=models.CASCADE,  # Вспомнить форматы удаления
         related_name='recipe',
         verbose_name='Ingredients for recipe'
         )

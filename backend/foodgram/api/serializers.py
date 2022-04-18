@@ -1,11 +1,12 @@
-from recipe.models import User
+from recipe.models import User, Recipe, Tag, Ingredient
 from rest_framework import serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('username', 'email', 'first_name', 'last_name', 'password')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name',
+                  'password')
         model = User
 
 
@@ -31,3 +32,33 @@ class TokenSerializer(UserSerializer):
     class Meta:
         model = User
         fields = ('email', 'password')
+
+
+class PasswordSerializer(AuthSerializer):
+
+    class Meta:
+        fields = ('id', 'new_password', 'current_password')
+        model = User
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+
+    author = UserSerializer()
+
+    class Meta:
+        fields = '__all__'
+        model = Recipe
+
+
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = '__all__'
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Ingredient
+        fields = '__all__'

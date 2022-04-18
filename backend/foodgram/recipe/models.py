@@ -114,7 +114,7 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,  # Вспомнить форматы удаления
         related_name='recipe'
         )
-    time = models.IntegerField(
+    cooking_time = models.IntegerField(
         verbose_name='Time of cooking'
         )  # Настроить формат в минутах
 

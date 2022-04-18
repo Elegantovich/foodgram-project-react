@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action, permission_classes as per_class
+from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -11,7 +11,8 @@ from rest_framework.permissions import AllowAny
 from api.permissions import (AdminOrReadonly, AuthorOrModeratorOrAdminOrReadonly,
                           SelfOrAdmin)
 from api.serializers import (AuthSerializer, UserSerializer,
-                               UserRoleSerializer, TokenSerializer)
+                             UserRoleSerializer, TokenSerializer,
+                             PasswordSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -19,7 +20,7 @@ class UserViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     permission_classes = (SelfOrAdmin, AllowAny)
     queryset = User.objects.all()
-    lookup_field = 'username'
+    lookup_field = 'pk'
 
     def get_permissions(self):
         if self.action == 'create':
@@ -28,6 +29,18 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [AllowAny, IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    @action(detail=True, methods=['get'], permission_classes=(IsAuthenticated,))
+    def set_password(self, request, pk=None):
+        user = self.get_object()
+        serializer = PasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({'status': 'password set'})
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+                            
     @action(detail=False, methods=['get'], url_path='me',
             permission_classes=(IsAuthenticated,),
             serializer_class=UserRoleSerializer)
@@ -43,7 +56,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
-
 
 def get_tokens_for_user(user):
     "Создание токена."

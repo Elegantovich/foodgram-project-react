@@ -2,17 +2,14 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from djoser.views import TokenDestroyView
 from user.views import (RecieveToken, UserViewSet)
+from recipe.views import RecipeViewSet
 
 router = DefaultRouter()
-router.register('users', UserViewSet, basename='user')
-"""router.register('titles', TitleViewSet)
+router.register('users', UserViewSet)
+router.register('recipes', RecipeViewSet)
+"""
 router.register('categories', CategoryViewSet)
 router.register('genres', GenresViewSet)
-router.register(
-    r'titles/(?P<title_id>[\d+]+)/reviews',
-    ReviewViewSet,
-    basename='reviews'
-)
 router.register(
     r'titles/(?P<title_id>[\d+]+)/reviews/(?P<review_id>[\d+]+)/comments',
     CommentViewSet,

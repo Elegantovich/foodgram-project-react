@@ -55,7 +55,7 @@ class Tag(models.Model):
         max_length=50,
         verbose_name='Name'
         )
-    hex = models.CharField(
+    color = models.CharField(
         max_length=50,
         verbose_name='hex-code of color'
         )
@@ -136,3 +136,18 @@ class Follow(models.Model):
         null=True,
         verbose_name='Автор',
         related_name='following')
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="favorite_subscriber",
+        verbose_name='Пользователь'
+        )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="favorite_recipe",
+        verbose_name='Рецепт'
+        )

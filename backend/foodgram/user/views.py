@@ -57,6 +57,7 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
+
 def get_tokens_for_user(user):
     "Создание токена."
     access = AccessToken.for_user(user)

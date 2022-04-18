@@ -24,6 +24,7 @@ class UserRoleSerializer(UserSerializer):
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role')
         model = User
 
+
 class TokenSerializer(UserSerializer):
 
     email = serializers.CharField(required=True)
@@ -61,4 +62,11 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        exclude = ('quantity', )
+
+
+class FavouriteRecipeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')

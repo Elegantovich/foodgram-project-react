@@ -1,4 +1,4 @@
-from recipe.models import User, Recipe, Tag, Ingredient
+from recipe.models import User, Recipe, Tag, Ingredient, ShoppingList
 from rest_framework import serializers
 
 
@@ -51,6 +51,29 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
 
 
+class RecipeSerializer2(serializers.ModelSerializer):
+
+    class Meta:
+        fields = ('id', 'name', 'image', 'cooking_time')
+        model = Recipe
+
+
+class ShowFollowsSerializer(UserSerializer):
+
+    recipes = RecipeSerializer2(many=True)
+
+    recipes_count = serializers.SerializerMethodField()
+
+    def get_recipes_count(self, obj):
+        all_recipes = Recipe.objects.filter(author=obj.id)
+        return all_recipes.count()
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'recipes', 'recipes_count')
+
+
 class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -69,4 +92,11 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class ShoppingListRecipeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ShoppingList
         fields = ('id', 'name', 'image', 'cooking_time')

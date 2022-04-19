@@ -89,7 +89,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipe',
+        related_name='recipes',
         verbose_name='Author'
         )
     name = models.CharField(
@@ -104,7 +104,7 @@ class Recipe(models.Model):
         )
     Ingredients = models.ManyToManyField(
         Ingredient,
-        related_name='recipe',
+        related_name='recipes',
         verbose_name='Ingredients for recipe'
         )
     tag = models.ForeignKey(  # Вспомнить форматы связей
@@ -112,7 +112,7 @@ class Recipe(models.Model):
         max_length=50,
         verbose_name='Tag',
         on_delete=models.CASCADE,  # Вспомнить форматы удаления
-        related_name='recipe'
+        related_name='recipes'
         )
     cooking_time = models.IntegerField(
         verbose_name='Time of cooking'
@@ -149,5 +149,20 @@ class Favorite(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         related_name="favorite_recipe",
+        verbose_name='Рецепт'
+        )
+
+
+class ShoppingList(models.Model):
+    buyer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="shopping_recipe",
+        verbose_name='Покупатель'
+        )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="buyers",
         verbose_name='Рецепт'
         )

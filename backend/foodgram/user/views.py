@@ -1,9 +1,10 @@
+from urllib import response
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from recipe.models import User
+from recipe.models import User, Follow
 from rest_framework.views import APIView
 from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
@@ -12,7 +13,7 @@ from api.permissions import (AdminOrReadonly, AuthorOrModeratorOrAdminOrReadonly
                           SelfOrAdmin)
 from api.serializers import (AuthSerializer, UserSerializer,
                              UserRoleSerializer, TokenSerializer,
-                             PasswordSerializer)
+                             PasswordSerializer, ShowFollowsSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -77,3 +78,31 @@ class RecieveToken(APIView):
         user = get_object_or_404(User, email=email, password=password)
         response = {'auth_token': get_tokens_for_user(user)}
         return Response(response, status=status.HTTP_200_OK)
+
+
+class FollowViewSet(APIView):
+
+    def get(self, request):
+        user = User.objects.filter(following__user=request.user)
+
+        serializer = ShowFollowsSerializer(user, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, user_id):
+        user = request.user
+        author = get_object_or_404(User, id=user_id)
+        if Follow.objects.filter(user=user, author=author).exists():
+            return Response(
+                {'response': 'Follow also exist!'},
+                status=status.HTTP_400_BAD_REQUEST)
+        Follow.objects.create(user=user, author=author)
+        serializer = ShowFollowsSerializer(author)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, user_id):
+        user = request.user
+        author = get_object_or_404(User, id=user_id)
+        follow = get_object_or_404(Follow, user=user, author=author)
+        follow.delete()
+        return Response({'response': 'Removed!'},
+                        status=status.HTTP_204_NO_CONTENT)

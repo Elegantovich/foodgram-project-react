@@ -1,4 +1,4 @@
-from recipe.models import User, Recipe, Tag, Ingredient, ShoppingList
+from recipe.models import User, Recipe, Tag, Ingredient, ShoppingList, Follow
 from rest_framework import serializers
 
 
@@ -7,6 +7,13 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'username', 'email', 'first_name', 'last_name',
                   'password')
+        model = User
+
+
+class UserRetrieveSerializer(UserSerializer):
+
+    class Meta:
+        fields = ('id', 'username', 'email', 'first_name', 'last_name')
         model = User
 
 
@@ -35,10 +42,10 @@ class TokenSerializer(UserSerializer):
         fields = ('email', 'password')
 
 
-class PasswordSerializer(AuthSerializer):
+class PasswordSerializer(UserSerializer):
 
     class Meta:
-        fields = ('id', 'new_password', 'current_password')
+        fields = ('id', 'password')
         model = User
 
 
@@ -61,7 +68,6 @@ class RecipeSerializer2(serializers.ModelSerializer):
 class ShowFollowsSerializer(UserSerializer):
 
     recipes = RecipeSerializer2(many=True)
-
     recipes_count = serializers.SerializerMethodField()
 
     def get_recipes_count(self, obj):
@@ -85,7 +91,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        exclude = ('quantity', )
+        fields = '__all__'
 
 
 class FavouriteRecipeSerializer(serializers.ModelSerializer):
@@ -98,5 +104,5 @@ class FavouriteRecipeSerializer(serializers.ModelSerializer):
 class ShoppingListRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ShoppingList
+        model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')

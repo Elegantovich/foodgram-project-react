@@ -26,6 +26,7 @@ class User(AbstractUser):
         verbose_name='Password of account',
         max_length=100
         )
+    
 
     User = 'user'
     Moder = 'moderator'
@@ -72,13 +73,9 @@ class Ingredient(models.Model):
         max_length=50,
         verbose_name='Name of ingredient'
         )
-    quantity = models.CharField(
-        max_length=50,
-        verbose_name='Quantity'
-        )
     units_measurement = models.CharField(
         max_length=50,
-        verbose_name='Units of measurement'
+        verbose_name='Units of measurement',
         )
 
     def __str__(self):
@@ -102,8 +99,9 @@ class Recipe(models.Model):
     description = models.TextField(
         verbose_name='Description'
         )
-    Ingredients = models.ManyToManyField(
+    ingredients = models.ManyToManyField(
         Ingredient,
+        through='IngredientInRecipe',
         related_name='recipes',
         verbose_name='Ingredients for recipe'
         )
@@ -138,6 +136,25 @@ class Follow(models.Model):
         related_name='following')
 
 
+class IngredientInRecipe(models.Model):
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='Ingredient in Recipe'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Recipe'
+    )
+    quantity = models.IntegerField(
+        verbose_name='Quantity of ingredients'
+    )
+
+    def __str__(self):
+        return f'{self.ingredient} in {self.recipe}'
+
+
 class Favorite(models.Model):
     user = models.ForeignKey(
         User,
@@ -154,7 +171,7 @@ class Favorite(models.Model):
 
 
 class ShoppingList(models.Model):
-    buyer = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="shopping_recipe",

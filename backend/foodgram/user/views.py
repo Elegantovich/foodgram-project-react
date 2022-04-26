@@ -1,4 +1,3 @@
-from urllib import response
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -13,7 +12,8 @@ from api.permissions import (AdminOrReadonly, AuthorOrModeratorOrAdminOrReadonly
                           SelfOrAdmin)
 from api.serializers import (AuthSerializer, UserSerializer,
                              UserRoleSerializer, TokenSerializer,
-                             PasswordSerializer, ShowFollowsSerializer)
+                             PasswordSerializer, ShowFollowsSerializer,
+                             UserRetrieveSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -23,6 +23,32 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     lookup_field = 'pk'
 
+    def list(self, request):
+        queryset = User.objects.all()
+        user = request.user
+        serializer = UserRetrieveSerializer(queryset, many=True)
+        for acc in serializer.data:
+            author = get_object_or_404(queryset, pk=acc['id'])
+            if user.id == author.id:
+                is_subscribed = False
+            elif Follow.objects.filter(user=user, author=author).exists():
+                is_subscribed = True
+            acc['is_subscribed'] = is_subscribed
+        print(serializer.data)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        is_subscribed = False
+        user = request.user
+        queryset = User.objects.all()
+        author = get_object_or_404(queryset, pk=pk)
+        serializer = UserRetrieveSerializer(author)
+        if Follow.objects.filter(user=user, author=author).exists():
+            is_subscribed = True
+        serializar_dict = serializer.data
+        serializar_dict['is_subscribed'] = is_subscribed
+        return Response(serializar_dict)
+
     def get_permissions(self):
         if self.action == 'create':
             permission_classes = [IsAuthenticated]
@@ -30,19 +56,27 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [AllowAny, IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    @action(detail=True, methods=['get'], permission_classes=(IsAuthenticated,))
+    @action(detail=True, methods=('post',), permission_classes=(IsAuthenticated,))
     def set_password(self, request, pk=None):
+        old_password = request.data['current_password']
+        new_password = request.data['new_password']
         user = self.get_object()
-        serializer = PasswordSerializer(data=request.data)
-        if serializer.is_valid():
-            user.set_password(serializer.validated_data['new_password'])
+        if user.password != old_password:
+            return Response(
+                {"message": "Password not correct!"},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+        data = {'id': user.id, 'password': user.password}
+        serializer = PasswordSerializer(data=data)
+        if serializer.is_valid(raise_exception=True):
+            user.password = new_password
             user.save()
             return Response({'status': 'password set'})
         else:
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
-                            
-    @action(detail=False, methods=['get'], url_path='me',
+
+    @action(detail=False, methods=('get',), url_path='me',
             permission_classes=(IsAuthenticated,),
             serializer_class=UserRoleSerializer)
     def get_patch_me_url(self, request):
@@ -56,7 +90,9 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
         serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
+        serializar_dict = serializer.data
+        serializar_dict['is_subscribed'] = False
+        return Response(serializar_dict)
 
 
 def get_tokens_for_user(user):
@@ -89,15 +125,26 @@ class FollowViewSet(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, user_id):
+        is_subscribed = False
         user = request.user
         author = get_object_or_404(User, id=user_id)
+        print(user.id, author.id)
+        if user.id == author.id:
+            return Response(
+                {'response': 'You not can subscribe to yourself!'},
+                status=status.HTTP_400_BAD_REQUEST)            
         if Follow.objects.filter(user=user, author=author).exists():
             return Response(
                 {'response': 'Follow also exist!'},
                 status=status.HTTP_400_BAD_REQUEST)
         Follow.objects.create(user=user, author=author)
         serializer = ShowFollowsSerializer(author)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if Follow.objects.filter(user=user, author=author).exists():
+            is_subscribed = True
+        serializar_dict = serializer.data
+        serializar_dict['is_subscribed'] = is_subscribed
+        print(serializar_dict)
+        return Response(serializar_dict, status=status.HTTP_201_CREATED)
 
     def delete(self, request, user_id):
         user = request.user

@@ -4,7 +4,8 @@ from django.contrib import admin
 LIST_MODELS = [
     models.Recipe,
     models.Ingredient,
-    models.Tag
+    models.Tag,
+    models.IngredientInRecipe
 ]
 
 admin.site.register(LIST_MODELS)

@@ -26,22 +26,19 @@ class User(AbstractUser):
         verbose_name='Password of account',
         max_length=100
         )
-    
 
     User = 'user'
-    Moder = 'moderator'
     Admin = 'admin'
 
     ROLES = (
         (User, 'user'),
-        (Moder, 'moderator'),
         (Admin, 'admin')
     )
 
     role = models.CharField(
         choices=ROLES,
         default='user',
-        max_length=9,
+        max_length=5,
         verbose_name='Статус',
         blank=True,
         null=True

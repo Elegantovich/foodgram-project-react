@@ -9,7 +9,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.permissions import AllowAny
 from api.permissions import (AdminOrReadonly, AuthorOrModeratorOrAdminOrReadonly,
-                          SelfOrAdmin)
+                             Admin)
 from api.serializers import (AuthSerializer, UserSerializer,
                              UserRoleSerializer, TokenSerializer,
                              PasswordSerializer, ShowFollowsSerializer,
@@ -19,7 +19,7 @@ from api.serializers import (AuthSerializer, UserSerializer,
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = (SelfOrAdmin, AllowAny)
+    permission_classes = (SelfOrAdmin, AllowAny, Admin)
     queryset = User.objects.all()
     lookup_field = 'pk'
 
@@ -53,10 +53,10 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             permission_classes = [IsAuthenticated]
         else:
-            permission_classes = [AllowAny, IsAuthenticated]
+            permission_classes = [AllowAny, IsAuthenticated, Admin]
         return [permission() for permission in permission_classes]
 
-    @action(detail=True, methods=('post',), permission_classes=(IsAuthenticated,))
+    @action(detail=True, methods=('post',), permission_classes=(IsAuthenticated, Admin))
     def set_password(self, request, pk=None):
         old_password = request.data['current_password']
         new_password = request.data['new_password']

@@ -30,6 +30,7 @@ pycparser==2.21
 pyflakes==2.4.0
 PyJWT==2.1.0
 pylibscrypt==2.0.0
+python-dotenv==0.20.0
 python3-openid==3.2.0
 pytz==2020.1
 pywin32==303

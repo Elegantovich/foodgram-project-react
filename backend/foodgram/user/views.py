@@ -26,6 +26,7 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [AllowAny]
         return [permission() for permission in permission_classes]
+
          
     @permission_classes([AllowAny])
     def list(self, request):

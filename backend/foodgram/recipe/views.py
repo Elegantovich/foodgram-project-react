@@ -1,4 +1,4 @@
-from api.permissions import AdminOrReadOnly, AdminUserOrReadOnly, Admin
+from api.permissions import AdminOrReadOnly, AdminUserOrReadOnly
 from api.serializers import (FavouriteRecipeSerializer, IngredientSerializer,
                              RecipeSerializer, ShoppingListRecipeSerializer,
                              TagSerializer)

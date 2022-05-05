@@ -1,31 +1,39 @@
-from rest_framework import viewsets, status
+from api.permissions import AdminUserOrReadOnly
+from api.serializers import (PasswordSerializer, ShowFollowsSerializer,
+                             TokenSerializer, UserRetrieveSerializer,
+                             UserRoleSerializer, UserSerializer)
+from recipe.models import Follow, User
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from recipe.models import User, Follow
-from rest_framework.views import APIView
+from rest_framework.decorators import permission_classes
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.permissions import AllowAny
-from api.permissions import (AdminOrReadonly, AuthorOrModeratorOrAdminOrReadonly,
-                             Admin)
-from api.serializers import (AuthSerializer, UserSerializer,
-                             UserRoleSerializer, TokenSerializer,
-                             PasswordSerializer, ShowFollowsSerializer,
-                             UserRetrieveSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
-    pagination_class = LimitOffsetPagination
-    permission_classes = (SelfOrAdmin, AllowAny, Admin)
+    pagination_class = PageNumberPagination
     queryset = User.objects.all()
     lookup_field = 'pk'
 
+    def get_permissions(self):
+        if self.action not in ['create', 'list', 'retrieve']:
+            permission_classes = [AdminUserOrReadOnly]
+        else:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
+         
+    @permission_classes([AllowAny])
     def list(self, request):
         queryset = User.objects.all()
         user = request.user
+        if str(user) == 'AnonymousUser':
+            serializer = UserRetrieveSerializer(queryset, many=True)
+            return Response(serializer.data)
         serializer = UserRetrieveSerializer(queryset, many=True)
         for acc in serializer.data:
             author = get_object_or_404(queryset, pk=acc['id'])
@@ -34,7 +42,6 @@ class UserViewSet(viewsets.ModelViewSet):
             elif Follow.objects.filter(user=user, author=author).exists():
                 is_subscribed = True
             acc['is_subscribed'] = is_subscribed
-        print(serializer.data)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -42,6 +49,9 @@ class UserViewSet(viewsets.ModelViewSet):
         user = request.user
         queryset = User.objects.all()
         author = get_object_or_404(queryset, pk=pk)
+        if str(user) == 'AnonymousUser':
+            serializer = UserRetrieveSerializer(author)
+            return Response(serializer.data)
         serializer = UserRetrieveSerializer(author)
         if Follow.objects.filter(user=user, author=author).exists():
             is_subscribed = True
@@ -49,14 +59,8 @@ class UserViewSet(viewsets.ModelViewSet):
         serializar_dict['is_subscribed'] = is_subscribed
         return Response(serializar_dict)
 
-    def get_permissions(self):
-        if self.action == 'create':
-            permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [AllowAny, IsAuthenticated, Admin]
-        return [permission() for permission in permission_classes]
-
-    @action(detail=True, methods=('post',), permission_classes=(IsAuthenticated, Admin))
+    @action(detail=True, methods=('post',),
+            permission_classes=(IsAuthenticated, AdminUserOrReadOnly))
     def set_password(self, request, pk=None):
         old_password = request.data['current_password']
         new_password = request.data['new_password']
@@ -102,6 +106,8 @@ def get_tokens_for_user(user):
 
 
 class RecieveToken(APIView):
+
+    @permission_classes(AdminUserOrReadOnly)
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -118,12 +124,14 @@ class RecieveToken(APIView):
 
 class FollowViewSet(APIView):
 
+    @permission_classes(AdminUserOrReadOnly)
     def get(self, request):
         user = User.objects.filter(following__user=request.user)
 
         serializer = ShowFollowsSerializer(user, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @permission_classes(AdminUserOrReadOnly)
     def post(self, request, user_id):
         is_subscribed = False
         user = request.user
@@ -132,7 +140,7 @@ class FollowViewSet(APIView):
         if user.id == author.id:
             return Response(
                 {'response': 'You not can subscribe to yourself!'},
-                status=status.HTTP_400_BAD_REQUEST)            
+                status=status.HTTP_400_BAD_REQUEST)
         if Follow.objects.filter(user=user, author=author).exists():
             return Response(
                 {'response': 'Follow also exist!'},
@@ -146,6 +154,7 @@ class FollowViewSet(APIView):
         print(serializar_dict)
         return Response(serializar_dict, status=status.HTTP_201_CREATED)
 
+    @permission_classes(AdminUserOrReadOnly)
     def delete(self, request, user_id):
         user = request.user
         author = get_object_or_404(User, id=user_id)

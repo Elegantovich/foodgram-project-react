@@ -1,21 +1,31 @@
-from .models import (Recipe, Ingredient, Tag, Favorite, ShoppingList,
-                     IngredientInRecipe)
-from api.serializers import (RecipeSerializer, TagSerializer,
-                             IngredientSerializer, FavouriteRecipeSerializer,
-                             ShoppingListRecipeSerializer)
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework import viewsets, mixins, status
-from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
+from api.permissions import AdminOrReadOnly, AdminUserOrReadOnly, Admin
+from api.serializers import (FavouriteRecipeSerializer, IngredientSerializer,
+                             RecipeSerializer, ShoppingListRecipeSerializer,
+                             TagSerializer)
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from rest_framework import mixins, status, viewsets
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+
+from .models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                     ShoppingList, Tag)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
     queryset = Recipe.objects.all()
     lookup_field = 'pk'
+
+    def get_permissions(self):
+        if self.action == 'retrieve':
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [AdminUserOrReadOnly]
+        return [permission() for permission in permission_classes]
 
 
 class ListRetrieveViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
@@ -24,15 +34,17 @@ class ListRetrieveViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
 
 class IngredientViewSet(ListRetrieveViewSet):
+    permission_classes = (AdminOrReadOnly,)
     serializer_class = IngredientSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
     queryset = Ingredient.objects.all()
     lookup_field = 'pk'
 
 
 class TagViewSet(ListRetrieveViewSet):
     serializer_class = TagSerializer
-    pagination_class = LimitOffsetPagination
+    pagination_class = PageNumberPagination
+    permission_classes = [AdminUserOrReadOnly]
     queryset = Tag.objects.all()
     lookup_field = 'pk'
 
@@ -120,4 +132,3 @@ class AddShoppingViewSet(APIView):
         shopping_obj.delete()
         return Response(
             'Recipe removed!', status=status.HTTP_204_NO_CONTENT)
-

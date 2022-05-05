@@ -1,4 +1,4 @@
-from recipe.models import User, Recipe, Tag, Ingredient, ShoppingList, Follow
+from recipe.models import Ingredient, Recipe, Tag, User
 from rest_framework import serializers
 
 

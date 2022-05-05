@@ -102,16 +102,16 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Ingredients for recipe'
         )
-    tag = models.ForeignKey(  # Вспомнить форматы связей
+    tag = models.ForeignKey(
         Tag,
         max_length=50,
         verbose_name='Tag',
-        on_delete=models.CASCADE,  # Вспомнить форматы удаления
+        on_delete=models.CASCADE,
         related_name='recipes'
         )
     cooking_time = models.IntegerField(
         verbose_name='Time of cooking'
-        )  # Настроить формат в минутах
+        )
 
     def __str__(self):
         return self.name

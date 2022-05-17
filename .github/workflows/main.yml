@@ -23,20 +23,20 @@ jobs:
         with:
           push: true
           tags: elegantovich/foodback:v3.0
-          file: ./Dockerfile 
+          file: backend/Dockerfile 
   
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push_to_docker_hub
     if: github.ref == 'refs/heads/master'
     steps:
-      - name: executing remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.DOCKER_PASSWORD }}
+    - name: executing remote ssh commands to deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.DOCKER_PASSWORD }}
           script: |
             sudo docker-compose stop
             sudo docker-compose rm backend

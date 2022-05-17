@@ -1,4 +1,3 @@
-from datetime import timedelta
 import os
 from dotenv import load_dotenv
 
@@ -10,7 +9,9 @@ SECRET_KEY = os.getenv('DJANGO_KEY', default='qwerty')
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+hosts = os.getenv('LIST_HOST', default='51.250.23.61,web').split(',')
+
+ALLOWED_HOSTS = hosts
 
 AUTH_USER_MODEL = 'recipe.User'
 
@@ -22,11 +23,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'recipe.apps.RecipeConfig',
-    'api.apps.ApiConfig',
-    'user.apps.UserConfig',
     'rest_framework.authtoken',
     'djoser',
+    'recipe',
+    'api',
+    'user',
+    'colorfield',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -58,14 +61,24 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT')
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -92,20 +105,40 @@ USE_L10N = True
 
 USE_TZ = True
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',),
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100,
+
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',)
 }
 
+DJOSER = {
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+    },
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'SERIALIZERS': {
+        'user_create': 'api.serializers.RegistrationSerializer',
+        'user': 'api.serializers.RegistrationSerializer',
+        'current_user': 'api.serializers.RegistrationSerializer',
+    }
 }
 
-STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STATIC_URL = '/staticfiles/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

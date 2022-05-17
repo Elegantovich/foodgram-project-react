@@ -1,7 +1,3 @@
-"""
-Создание маршрутизаторов API проекта Foodgram.
-"""
-
 from django.urls import include, path
 from recipe.views import (CartViewSet, CreateUserView, DownloadCart,
                           FavoriteViewSet, IngredientViewSet, RecipeViewSet,

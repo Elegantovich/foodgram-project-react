@@ -1,22 +1,24 @@
 # praktikum_new_diplom
 
 
-"""  backend:
-    image: elegantovich/foodback:v1.0
-    restart: always
-    depends_on:
-      - db
-    volumes:
-      - static_value:/app/backend/staticfiles/
-      - media_value:/app/backend/media/
-    env_file:
-      - ./.env"""
+name: Yamdb workflow
+on: [push]
+jobs:
 
-
-        db:
-    env_file:
-      - .env
-    image: postgres:13.0-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    restart: always
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.7'
+    - name: Install dependencies
+      run: | 
+        python -m pip install --upgrade pip 
+        pip install flake8 pep8-naming flake8-broken-line flake8-return flake8-isort
+        pip install -r api_yamdb/requirements.txt 
+    - name: Test with flake8 and django tests
+      run: |
+        python -m flake8
+        pytest

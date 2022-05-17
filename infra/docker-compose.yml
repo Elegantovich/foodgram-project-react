@@ -11,7 +11,7 @@ services:
     restart: always
 
   backend:
-    build: ../backend
+    image: elegantovich/foodback:v3.0
     restart: always
     depends_on:
       - db

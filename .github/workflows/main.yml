@@ -14,7 +14,6 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.DOCKER_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.DOCKER_PASSWORD }}
           script: |
             sudo docker-compose stop

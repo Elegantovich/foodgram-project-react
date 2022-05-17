@@ -3,11 +3,10 @@
 """
 
 from django.urls import include, path
+from recipe.views import (CartViewSet, CreateUserView, DownloadCart,
+                          FavoriteViewSet, IngredientViewSet, RecipeViewSet,
+                          SubscribeViewSet, TagViewSet)
 from rest_framework.routers import DefaultRouter
-
-from recipe.views import (CartViewSet, CreateUserView, FavoriteViewSet,
-                          IngredientViewSet, RecipeViewSet, SubscribeViewSet,
-                          TagViewSet, DownloadCart)
 
 app_name = 'api'
 router = DefaultRouter()

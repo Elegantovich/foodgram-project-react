@@ -1,24 +1,23 @@
 from http import HTTPStatus
 
+from api.filters import IngredientSearchFilter, RecipeFilters
+from api.serializers import (CartSerializer, FavoriteSerializer,
+                             IngredientSerializer, RecipeSerializer,
+                             RecipeSerializerPost, RegistrationSerializer,
+                             SubscriptionSerializer, TagSerializer)
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_list_or_404, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from recipe.models import (Cart, Favorite, Ingredient, IngredientRecipe,
+                           Recipe, Subscribe, Tag, User)
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from rest_framework import permissions, viewsets
 from rest_framework.response import Response
-
-from recipe.models import (Cart, Favorite, Ingredient, IngredientRecipe,
-                           Recipe, Subscribe, Tag, User)
-from api.filters import IngredientSearchFilter, RecipeFilters
-from api.serializers import (CartSerializer, FavoriteSerializer,
-                             IngredientSerializer, RecipeSerializer,
-                             RecipeSerializerPost, RegistrationSerializer,
-                             SubscriptionSerializer, TagSerializer)
 
 
 class CreateUserView(UserViewSet):

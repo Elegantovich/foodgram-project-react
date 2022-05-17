@@ -22,8 +22,8 @@ jobs:
         uses: docker/build-push-action@v2 
         with:
           push: true
-          tags: elegantovich/foodback:latest
-          file: backend/Dockerfile 
+          tags: elegantovich/foodback:v3.0
+          file: app/Dockerfile 
   
   deploy:
     runs-on: ubuntu-latest

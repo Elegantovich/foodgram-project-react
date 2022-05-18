@@ -1,6 +1,5 @@
 name: Foodgram workflow
 on: [push]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest

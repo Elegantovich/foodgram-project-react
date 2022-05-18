@@ -6,12 +6,6 @@ from django.db import models
 
 class User(AbstractUser):
 
-    username = models.CharField(
-        db_index=True,
-        max_length=150,
-        unique=True,
-        verbose_name='Уникальное имя',
-        help_text='Введите уникальное имя пользователя')
     email = models.EmailField(
         db_index=True,
         unique=True,
@@ -22,10 +16,6 @@ class User(AbstractUser):
         max_length=150,
         verbose_name='Имя',
         help_text='Введите имя пользователя')
-    last_name = models.CharField(
-        max_length=150,
-        verbose_name='Фамилия',
-        help_text='Введите фамилию пользователя')
     is_subscribed = models.BooleanField(
         default=False,
         verbose_name='Подписка на данного пользователя',

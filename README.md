@@ -1,6 +1,5 @@
 # praktikum_new_diplom
 
-
   tests: 
     runs-on: ubuntu-latest
     steps:

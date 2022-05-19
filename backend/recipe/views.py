@@ -121,17 +121,25 @@ class DownloadCart(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def download(self, request):
-        ingredients = Ingredient.objects.filter(
-            recipe__cart__user=request.user).values(
+        user = request.user
+        recipes = Recipe.objects.filter(
+            in_favourites__user=user,
+            in_favourites__is_in_shopping_cart=True
+        )
+        ingredients = recipes.values(
             'ingredients__name',
-            'ingredients__measurement_unit').annotate(total=Sum('amount'))
-
-        shopping_cart = '\n'.join([
-            f'{ingredient["ingredients__name"]} - {ingredient["amount"]} '
-            f'{ingredient["ingredients__measurement_unit"]}'
-            for ingredient in ingredients
-        ])
-        filename = 'shopping_list.txt'
-        response = HttpResponse(shopping_cart, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
-        return response
+            'ingredients__measurement_unit').order_by(
+            'ingredients__name').annotate(
+            ingredients_total=Sum('ingredient_amounts__amount')
+        )
+        shopping_list = {}
+        for item in ingredients:
+            title = item.get('ingredients__name')
+            count = str(item.get('ingredients_total')) + ' ' + item[
+                'ingredients__measurement_unit__name'
+            ]
+            shopping_list[title] = count
+        data = ''
+        for key, value in shopping_list.items():
+            data += f'{key} - {value}\n'
+        return HttpResponse(data, content_type='text/plain')

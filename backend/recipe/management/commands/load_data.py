@@ -7,11 +7,11 @@ from recipe.models import Ingredient
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        with open('backend/data/ingredients.json', 'rb') as f:
+        with open('data/ingredients.json', 'rb') as f:
             data = json.load(f)
             for i in data:
-                ingredient = Ingredient()
-                ingredient.name = i['name']
-                ingredient.measurement_unit = i['measurement_unit']
-                ingredient.save()
+                Ingredient.objects.create(
+                    name=i['name'],
+                    measurement_unit=i['measurement_unit']
+                )
                 print(i['name'], i['measurement_unit'])

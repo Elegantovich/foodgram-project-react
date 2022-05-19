@@ -12,10 +12,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from recipe.models import (Cart, Favorite, Ingredient, IngredientRecipe,
                            Recipe, Subscribe, Tag, User)
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 from rest_framework import permissions, viewsets
 from rest_framework.response import Response
 
@@ -124,41 +120,18 @@ class DownloadCart(viewsets.ModelViewSet):
 
     permission_classes = [permissions.IsAuthenticated]
 
-    @staticmethod
-    def canvas_method(dictionary):
-        response = HttpResponse(content_type='application/pdf')
-        response[
-            'Content-Disposition'] = 'attachment; \
-        filename = "shopping_cart.pdf"'
-        begin_position_x, begin_position_y = 40, 650
-        sheet = canvas.Canvas(response, pagesize=A4)
-        pdfmetrics.registerFont(TTFont('FreeSans',
-                                       'data/FreeSans.ttf'))
-        sheet.setFont('FreeSans', 50)
-        sheet.setTitle('Список покупок')
-        sheet.drawString(begin_position_x,
-                         begin_position_y + 40, 'Список покупок: ')
-        sheet.setFont('FreeSans', 24)
-        for number, item in enumerate(dictionary, start=1):
-            if begin_position_y < 100:
-                begin_position_y = 700
-                sheet.showPage()
-                sheet.setFont('FreeSans', 24)
-            sheet.drawString(
-                begin_position_x,
-                begin_position_y,
-                f'{number}.  {item["ingredient__name"]} - '
-                f'{item["ingredient_total"]}'
-                f' {item["ingredient__measurement_unit"]}'
-            )
-            begin_position_y -= 30
-        sheet.showPage()
-        sheet.save()
-        return response
-
     def download(self, request):
-        result = IngredientRecipe.objects.filter(
-            recipe__carts__user=request.user).values(
-            'ingredient__name', 'ingredient__measurement_unit').order_by(
-                'ingredient__name').annotate(ingredient_total=Sum('amount'))
-        return self.canvas_method(result)
+        ingredients = Ingredient.objects.filter(
+            recipe__cart__user=request.user).values(
+            'ingredients__name',
+            'ingredients__measurement_unit').annotate(total=Sum('amount'))
+
+        shopping_cart = '\n'.join([
+            f'{ingredient["ingredients__name"]} - {ingredient["amount"]} '
+            f'{ingredient["ingredients__measurement_unit"]}'
+            for ingredient in ingredients
+        ])
+        filename = 'shopping_list.txt'
+        response = HttpResponse(shopping_cart, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return response

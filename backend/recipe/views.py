@@ -10,8 +10,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_list_or_404, get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipe.models import (Cart, Favorite, Ingredient, Recipe, Subscribe, Tag,
-                           User)
+from recipe.models import (Cart, Favorite, Ingredient, IngredientRecipe,
+                           Recipe, Subscribe, Tag, User)
 from rest_framework import permissions, viewsets
 from rest_framework.response import Response
 
@@ -121,25 +121,11 @@ class DownloadCart(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def download(self, request):
-        user = request.user
-        recipes = Recipe.objects.filter(
-            in_favourites__user=user,
-            in_favourites__is_in_shopping_cart=True
-        )
-        ingredients = recipes.values(
-            'ingredients__name',
-            'ingredients__measurement_unit').order_by(
-            'ingredients__name').annotate(
-            ingredients_total=Sum('ingredient_amounts__amount')
-        )
-        shopping_list = {}
-        for item in ingredients:
-            title = item.get('ingredients__name')
-            count = str(item.get('ingredients_total')) + ' ' + item[
-                'ingredients__measurement_unit__name'
-            ]
-            shopping_list[title] = count
-        data = ''
-        for key, value in shopping_list.items():
-            data += f'{key} - {value}\n'
-        return HttpResponse(data, content_type='text/plain')
+        result = IngredientRecipe.objects.filter(
+            recipe__carts__user=request.user).values(
+            'ingredient__name', 'ingredient__measurement_unit').order_by(
+                'ingredient__name').annotate(ingredient_total=Sum('amount'))
+        filename = 'shopping_cart.txt'
+        response = HttpResponse(result, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return response

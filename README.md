@@ -67,24 +67,49 @@
 - для [Windows и MacOS](https://www.docker.com/products/docker-desktop)
 - для [Linux](https://docs.docker.com/engine/install/ubuntu/). Отдельно потребуется установть [Docker Compose](https://docs.docker.com/compose/install/)
 
-### Запуск проекта (на примере Linux)
-
-- Склонируйте этот репозиторий в текущую папку `git clone https://github.com/elegantovich/foodgram-project-react/`
-- Создайте файл `.env` командой `touch .env` и добавьте в него переменные окружения для работы с базой данных:
+### Запуск проекта.
+Склонируйте этот репозиторий в текущую папку
 ```
-DB_NAME=postgres # имя базы данных
-DB_ENGINE
-POSTGRES_USER=postgres # логин для подключения к базе данных
-POSTGRES_PASSWORD=postgres # пароль для подключения к БД (установите свой)
-DB_HOST=db # название сервиса (контейнера)
-DB_PORT=5432 # порт для подключения к БД 
-DHANGO_KEY # ключ проекта
-LIST_HOST № список хостов
+git clone https://github.com/Elegantovich/API_Blog/
 ```
-- Запустите docker-compose командой `sudo docker-compose up -d`
-- Накатите миграции `sudo docker-compose exec backend python manage.py migrate`
-- Соберите статику командой `sudo docker-compose exec backend python manage.py collectstatic --no-input`
-- Создайте суперпользователя Django `sudo docker-compose exec backend python manage.py createsuperuser --username admin --email 'admin@ya.com'`
+Перейдите в папку 'infra'
+```
+cd infra
+```
+Создайте файл `.env` командой
+```
+touch .env
+```
+и добавьте в него переменные окружения для работы с базой данных:
+```
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+DB_HOST=db
+DB_PORT=5432 
+DJANGO_KEY='your_key'
+```
+Запустите docker-compose:
+```
+docker-compose up -d --build
+```
+Накатите миграции:
+```
+docker-compose exec web python manage.py migrate
+```
+Создайте суперпользователя:
+```
+docker-compose exec web python manage.py createsuperuser
+```
+Соберите статику в единую папку:
+```
+docker-compose exec web python manage.py collectstatic --no-input
+```
+Создать пользователя можно через джанго-админгу
+```
+http//localhost/admin/
+```
 
 ## Деплой на удаленный сервер
 Для запуска проекта на удаленном сервере необходимо:

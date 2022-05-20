@@ -131,7 +131,7 @@ class DownloadCart(viewsets.ModelViewSet):
             item[1], item[2] = item[2], item[1]
             item = ' '.join(item)
             result.append(item)
-        result = '\n'.join(result)
+        result = ',\n'.join(result)
         filename = 'shopping_cart.txt'
         response = HttpResponse(result, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename={filename}'

@@ -117,9 +117,11 @@ http//localhost/admin/
 - создать переменные окружения в разделе `secrets` настроек текущего репозитория:
 ```
 DHANGO_KEY - ключ джанго проекта
+
 LIST_HOST - allow_host
 SSH_KEY
 ### данные по postgresql
+```
 POSTGRES_PASSWORD
 POSTGRES_USER
 DB_ENGINE
@@ -127,13 +129,17 @@ DB_HOST
 DB_NAME
 DB_PORT
 HOST
+```
 ### данные по докеру
+```
 DOCKER_PASSWORD
 DOCKER_USERNAME
+```
 ### данные по телеграмму
+```
 TELEGRAM_TO
 TELEGRAM_TOKEN 
-
+```
 
 ### После каждого обновления репозитория (`git push`) будет происходить:
 1. Проверка кода на соответствие стандарту PEP8 (с помощью пакета flake8) и запуск pytest из репозитория foodgram-project-react

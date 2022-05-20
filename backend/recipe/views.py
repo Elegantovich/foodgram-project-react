@@ -121,10 +121,17 @@ class DownloadCart(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def download(self, request):
-        result = IngredientRecipe.objects.filter(
+        data = IngredientRecipe.objects.filter(
             recipe__carts__user=request.user).values(
             'ingredient__name', 'ingredient__measurement_unit').order_by(
                 'ingredient__name').annotate(ingredient_total=Sum('amount'))
+        result = []
+        for i in data:
+            item = [str(i[item]) for item in i]
+            item[1], item[2] = item[2], item[1]
+            item = ' '.join(item)
+            result.append(item)
+        result = '\n'.join(result)
         filename = 'shopping_cart.txt'
         response = HttpResponse(result, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename={filename}'
